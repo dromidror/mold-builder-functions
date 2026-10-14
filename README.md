@@ -50,9 +50,9 @@ npm test
    Storage account.
 2. In the Function App's **Environment variables**, set:
    - `AUTH_JWT_SECRET`: a long random secret (e.g. `openssl rand -base64 48`);
-   - `USERS_STORAGE_CONNECTION`: the storage account's connection string (Access keys). Flex
-     Consumption apps often reach their own storage by managed identity, so don't rely on
-     `AzureWebJobsStorage` holding a connection string.
+   - `USERS_STORAGE_CONNECTION` (optional): a storage connection string for the users table.
+     Without it the app's own storage account is used through Flex Consumption's
+     `DEPLOYMENT_STORAGE_CONNECTION_STRING` (then `AzureWebJobsStorage`).
 3. In the GitHub repo, add the secret `AZURE_FUNCTIONAPP_PUBLISH_PROFILE` (the Function App's
    publish profile — if the portal won't offer one, turn on *SCM Basic Auth Publishing
    Credentials* under Configuration) and the variable `AZURE_FUNCTIONAPP_NAME`. Pushing to `main` then tests and
