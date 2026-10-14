@@ -35,8 +35,10 @@ azurite --location .azurite &                         # local Table Storage
 npm start                                             # http://localhost:7071/api
 ```
 
-The apps point at the local host by default: the macOS app at `http://localhost:7071/api`, the
-Android emulator at `http://10.0.2.2:7071/api`.
+The apps use the live API by default. To try them against the local host instead: macOS —
+`defaults write com.moldbuilder.app MoldBuilderApiURL http://localhost:7071/api` (undo with
+`defaults delete com.moldbuilder.app MoldBuilderApiURL`); Android — build with
+`-PmoldBuilderApiUrl=http://10.0.2.2:7071/api`.
 
 ## Test
 
