@@ -1,0 +1,47 @@
+name: Deploy Mold Builder Functions
+
+# Tests, then deploys to the Azure Function App (Flex Consumption plan, Node.js 22).
+# Needs, in the GitHub repo settings:
+#   - secret   AZURE_FUNCTIONAPP_PUBLISH_PROFILE: the Function App's publish profile
+#              (Azure portal → Function App → Overview → Get publish profile)
+#   - variable AZURE_FUNCTIONAPP_NAME: the Function App's name
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Test
+        run: npm test
+
+      - name: Remove dev dependencies
+        run: npm prune --omit=dev
+
+      - name: Deploy to Azure Functions
+        uses: Azure/functions-action@v1
+        with:
+          app-name: ${{ vars.AZURE_FUNCTIONAPP_NAME }}
+          package: .
+          sku: flexconsumption
+          publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}

@@ -1,0 +1,16 @@
+# Dependencies (restored by npm ci)
+node_modules/
+
+# Local secrets and settings
+.env
+local.settings.json
+
+# Local storage emulator data
+.azurite/
+__azurite_db_*.json
+__blobstorage__/
+__queuestorage__/
+
+# Logs and OS files
+*.log
+.DS_Store

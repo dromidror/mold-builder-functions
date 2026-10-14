@@ -1,0 +1,21 @@
+{
+  "name": "mold-builder-functions",
+  "version": "1.0.0",
+  "description": "Azure Functions backend for Mold Builder: account sign up / login",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "func start",
+    "test": "vitest --run"
+  },
+  "license": "ISC",
+  "engines": { "node": ">=22" },
+  "dependencies": {
+    "@azure/data-tables": "^13.3.0",
+    "@azure/functions": "^4.12.0",
+    "jose": "^6.2.2"
+  },
+  "devDependencies": {
+    "vitest": "^3.2.4"
+  }
+}

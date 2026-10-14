@@ -1,0 +1,13 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "FUNCTIONS_WORKER_RUNTIME": "node",
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "USERS_STORAGE_CONNECTION": "UseDevelopmentStorage=true",
+    "USERS_TABLE": "users",
+    "AUTH_JWT_SECRET": "replace-with-a-long-random-secret-at-least-32-characters"
+  },
+  "Host": {
+    "CORS": "*"
+  }
+}
