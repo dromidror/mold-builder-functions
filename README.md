@@ -12,10 +12,20 @@ All bodies are JSON. Errors are `{ "error": "<message for the user>" }`.
 | POST | `/api/auth/signup` | `{ email, password, name? }` | `201 { token, user }` |
 | POST | `/api/auth/login` | `{ email, password }` | `200 { token, user }` |
 | GET | `/api/auth/me` | header `Authorization: Bearer <token>` | `200 { user }` |
+| POST | `/api/docs/ask` | `{ question, context? }` + `Authorization: Bearer <token>` | `200 { answer, sources }` |
+| GET | `/api/docs/suggest?q=…` | header `Authorization: Bearer <token>` | `200 { suggestions }` |
 | GET | `/api/health` | | `200 { ok: true }` |
 
 `user` is `{ email, name }`. Errors: `400` invalid input, `401` wrong email/password or bad/expired
 token, `409` email already registered, `500` server problem.
+
+### Dynamic help (`docs/*`)
+
+Powers the Pottery Wheel app's always-on help search bar. `docs/ask` retrieves the most relevant
+documentation from **Azure AI Search** and has **Azure OpenAI** write an answer grounded in it,
+tailored to the `context` the app sends (current screen, object/selected part, recent questions).
+`docs/suggest` returns type-ahead suggestions from the same index. Both require a valid session
+(the auth JWT). Setup, provisioning, and indexing: **[DYNAMIC_HELP_SETUP.md](DYNAMIC_HELP_SETUP.md)**.
 
 - Emails are case-insensitive. Passwords need at least 8 characters.
 - Passwords are stored only as salted scrypt hashes.

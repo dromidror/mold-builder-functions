@@ -5,7 +5,16 @@
     "AzureWebJobsStorage": "UseDevelopmentStorage=true",
     "USERS_STORAGE_CONNECTION": "UseDevelopmentStorage=true",
     "USERS_TABLE": "users",
-    "AUTH_JWT_SECRET": "replace-with-a-long-random-secret-at-least-32-characters"
+    "AUTH_JWT_SECRET": "replace-with-a-long-random-secret-at-least-32-characters",
+
+    "SEARCH_ENDPOINT": "https://<your-search>.search.windows.net",
+    "SEARCH_API_KEY": "<a query key for the search service>",
+    "SEARCH_INDEX": "pottery-docs",
+
+    "AOAI_ENDPOINT": "https://<your-foundry-resource>.openai.azure.com",
+    "AOAI_API_KEY": "<an Azure AI Foundry key>",
+    "AOAI_DEPLOYMENT": "help-chat",
+    "AOAI_API_VERSION": "2024-10-21"
   },
   "Host": {
     "CORS": "*"
