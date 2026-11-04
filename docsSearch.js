@@ -19,7 +19,23 @@
 
 const DEFAULT_INDEX = "pottery-docs";
 const DEFAULT_AOAI_API_VERSION = "2025-04-01-preview"; // GPT-5 needs a newer API version
-const TOP_K = 5;            // passages retrieved per question
+const TOP_K = 8;            // passages retrieved per question (the whole corpus is small, so be generous)
+
+// Words that carry no topic in a help question; dropped from the SEARCH query only (the model still
+// sees the full question). Without this, "how to create gallery" matches on "how"/"to"/"create"
+// across the whole corpus and the gallery passages can miss the top results.
+const FILLER = new Set([
+  "how", "to", "do", "does", "did", "i", "me", "my", "a", "an", "the", "can", "could", "should",
+  "would", "what", "whats", "where", "which", "when", "why", "is", "are", "was", "of", "for", "in",
+  "on", "it", "and", "or", "with", "please", "want", "need", "way",
+]);
+
+/** The search terms for a question: lowercase words minus filler. Falls back to the question itself. */
+export function searchQuery(question) {
+  const words = String(question).toLowerCase().split(/[^\p{L}\p{N}]+/u).filter(Boolean);
+  const terms = words.filter((w) => !FILLER.has(w));
+  return terms.length ? terms.join(" ") : String(question).trim();
+}
 const MAX_QUESTION = 500;   // guard against oversized prompts
 const MAX_HISTORY = 6;      // recent prior questions kept for follow-ups
 
@@ -91,7 +107,7 @@ export async function suggest(query, env = process.env) {
 }
 
 /** Build the system + user messages: answer only from the passages, tailored to the context. */
-function buildMessages(question, context, passages) {
+export function buildMessages(question, context, passages) {
   const ctx = context && typeof context === "object" ? context : {};
   const obj = ctx.object && typeof ctx.object === "object" ? ctx.object : {};
   const where = [
@@ -110,24 +126,37 @@ function buildMessages(question, context, passages) {
   const system =
     "You are the in-app help assistant for Pottery Wheel, an app for designing tableware and " +
     "exporting STL models and casting molds. Answer the user's question using ONLY the " +
-    "documentation passages provided. Be concise and practical — give the steps they need right " +
-    "now. Tailor the answer to where they are in the app and what they're building (given below). " +
+    "documentation passages provided. Give complete, practical, step-by-step instructions: combine " +
+    "every relevant detail across the passages (recipes, glossary entries and overviews included) " +
+    "and don't skip steps, but keep each step short. Tailor the answer to where they are in the " +
+    "app and what they're building (given below). " +
     "If the passages don't cover the question, say so briefly and suggest the closest relevant " +
-    "topic. Do not invent features. Prefer short paragraphs or short numbered steps.";
+    "topic. Do not invent features. Prefer short paragraphs or short numbered steps. " +
+    "Answer ONLY the final question. Earlier questions, if listed, are background for follow-ups " +
+    "(\"and then?\") and have already been answered — never answer them again, and ignore them " +
+    "when the final question is about a different topic. A one-word question is a topic: explain " +
+    "what the documentation says about it.";
+
+  // Earlier questions go INSIDE the final message as background. They must not be separate
+  // `user` turns: with no assistant replies between them the model reads them as still-unanswered
+  // questions and answers the old topic against the new topic's documentation.
+  const history = (Array.isArray(ctx.history) ? ctx.history.slice(-MAX_HISTORY) : [])
+    .filter((h) => typeof h === "string" && h.trim())
+    .map((h) => h.trim().slice(0, MAX_QUESTION));
+  const historyBlock = history.length
+    ? `Earlier questions from this user (background only, already answered):\n${history.map((h) => `- ${h}`).join("\n")}\n\n`
+    : "";
 
   const user =
     (where ? `The user's current context:\n${where}\n\n` : "") +
+    historyBlock +
     `Documentation:\n${docsBlock}\n\n` +
-    `Question: ${question}`;
+    `Final question — answer this one: ${question}`;
 
-  const messages = [{ role: "system", content: system }];
-  // Prior questions as lightweight history so follow-ups ("and then?") make sense.
-  const history = Array.isArray(ctx.history) ? ctx.history.slice(-MAX_HISTORY) : [];
-  for (const h of history) {
-    if (typeof h === "string" && h.trim()) messages.push({ role: "user", content: h.trim().slice(0, MAX_QUESTION) });
-  }
-  messages.push({ role: "user", content: user });
-  return messages;
+  return [
+    { role: "system", content: system },
+    { role: "user", content: user },
+  ];
 }
 
 /** Call Azure OpenAI chat completions; return the answer text. */
@@ -159,7 +188,7 @@ export async function ask(input, env = process.env) {
   const cfg = searchConfig(env);
   assertConfigured(cfg);
 
-  const passages = await searchDocs(cfg, question);
+  const passages = await searchDocs(cfg, searchQuery(question));
   const messages = buildMessages(question, input?.context, passages);
   const answer = await generateAnswer(cfg, messages);
 
