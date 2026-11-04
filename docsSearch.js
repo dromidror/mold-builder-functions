@@ -18,7 +18,7 @@
  */
 
 const DEFAULT_INDEX = "pottery-docs";
-const DEFAULT_AOAI_API_VERSION = "2024-10-21";
+const DEFAULT_AOAI_API_VERSION = "2025-04-01-preview"; // GPT-5 needs a newer API version
 const TOP_K = 5;            // passages retrieved per question
 const MAX_QUESTION = 500;   // guard against oversized prompts
 const MAX_HISTORY = 6;      // recent prior questions kept for follow-ups
@@ -136,7 +136,9 @@ async function generateAnswer(cfg, messages) {
   const res = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json", "api-key": cfg.aoaiKey },
-    body: JSON.stringify({ messages, temperature: 0.2, max_tokens: 500 }),
+    // GPT-5 models are reasoning models: they reject `max_tokens` and a non-default `temperature`.
+    // The completion budget also covers hidden reasoning tokens, so keep it roomy and the effort low.
+    body: JSON.stringify({ messages, max_completion_tokens: 2000, reasoning_effort: "low" }),
   });
   if (!res.ok) throw new Error(`Answer generation failed (${res.status})`);
   const json = await res.json();

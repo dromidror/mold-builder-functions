@@ -135,7 +135,7 @@ az functionapp config appsettings set -g $RG -n pottery --settings \
   AOAI_ENDPOINT="$AOAI_ENDPOINT" \
   AOAI_API_KEY="$AOAI_API_KEY" \
   AOAI_DEPLOYMENT="$DEPLOY_NAME" \
-  AOAI_API_VERSION="2024-10-21"
+  AOAI_API_VERSION="2025-04-01-preview"
 ```
 
 ## 5. Deploy the functions
